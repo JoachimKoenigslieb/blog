@@ -1,0 +1,250 @@
+## New years betting
+
+This year the Queen of Denmark, H.M. Dronning Magrethe, abdicated, which means I can finally spill some sick betting alpha!. Every year the queen of Denmark has held an annual New Years speech. 
+Recently, I've realized that you can bet money on specific words used in this speech. 
+Additionally, you can also bet if she will use specific words *at least* a certain number of times. I thought this was interesting, and maybe, we can do some statistics.
+
+To start out we will gather all the speeches made by the Queen. It turns out there is a Danish company, Danske Taler, that has convientently collected these speeches for us.
+We can find them by going to [this link](https://www.dansketaler.dk/soeg?q=Dronning+Magrethe+nyt%C3%A5rstale). After downloading the speeches, we can start exploring the data.
+
+<img src={'/blog/most-used-words.png'} alt="Alternative text" />
+
+This seems reasonable, but pretty boring. Who is going to make markets on the frequency of the word "og"? The actual markets available are different at each betting provider,
+but we can take a look at the actual bets I made in 2022. 
+
+<div style={{ overflowX: 'auto', }}>
+	<table>
+	<thead>
+	<tr>
+		<th></th>
+		<th>Danmark (7.5)</th>
+		<th>Danske (4.5)</th>
+		<th>Tak (3.5)</th>
+		<th>Grønland (2.5)</th>
+		<th>Færøerne (2.5)</th>
+		<th>Nytår (2.5)</th>
+		<th>Samfund (2.5)</th>
+		<th>Verden (2.5)</th>
+		<th>Nytårsønsker (2.5)</th>
+		<th>Varmeste (1.5)</th>
+	</tr>
+	</thead>
+	<tbody>
+	<tr>
+		<td>Over</td>
+		<td>1.95</td>
+		<td>1.8</td>
+		<td>1.7</td>
+		<td>1.62</td>
+		<td>2.2</td>
+		<td>1.95</td>
+		<td>1.85</td>
+		<td>1.6</td>
+		<td>2.2</td>
+		<td>1.48</td>
+	</tr>
+	<tr>
+		<td>Under</td>
+		<td>1.75</td>
+		<td>1.9</td>
+		<td>2.02</td>
+		<td>2.15</td>
+		<td>1.6</td>
+		<td>1.75</td>
+		<td>1.85</td>
+		<td>2.2</td>
+		<td>1.6</td>
+		<td>2.45</td>
+	</tr>
+	</tbody>
+	</table>
+</div>
+
+Here the cutoff for the over/under is written in parentheses.
+
+We can start by checking how rare these events are. For each year, we can plot how many times each of the words we can bet on, is being said in the speeches. It looks like this:
+
+<img src={'/blog/word-count-time.png'} alt="Count of how many times the words we can bet on are used troughout the years." />
+
+Additionally, we have also plotted a red line indicating the cutoff. Some interesting things to note are that taking the "under" bet on "Danmark" would mean you would only lose twice in the last 50 years!
+Actually, taking the "under" bet across the board seems to be a pretty sweet deal here... There also seems to be some changes in the habits of the queen. She is using the word "Varmeste" more often recently.
+
+Now, we might take a quick look at this and decide on some bets. But can we try to quantify which bets to take and, more importantly, How much to bet?
+
+### Calculating odds
+
+Lets pull-out-of-our-ass that the number of times the queen uses a word is modeled by a Poisson distribution. The interpretation is something like: 
+Using a specific word is independent of when you last used it, and independent of previous words. Justifying the choice of distribution is not really something I am going to try hard at.
+The argument is something like: The chance of a word being used in a speech is constant, and does not depend on when it was last used. This kind of makes sense, and even if it does not, we have to choose some model.
+Under these assumptions, the probability of seeing a word being said k times is: 
+
+$$
+	p = \frac{\lambda^k e^{-\lambda}}{k!}
+$$
+
+We can plot the histograms of the number of occurrences of the betting words over the 50 speeches in our dataset, and then fit a Poisson distribution to it. This is actually a super simple exercise, 
+because the max-likelihood estimator for lambda is the mean of the probability density. Then its pretty simple to calculate our own over/under probabilities for each word. 
+
+<div style={{ overflowX: 'auto', }}>
+<table>
+<thead>
+  <tr>
+    <th></th>
+    <th>Danmark (7.5)</th>
+    <th>Danske (4.5)</th>
+    <th>Tak (3.5)</th>
+    <th>Grønland (2.5)</th>
+    <th>Færøerne (2.5)</th>
+    <th>Nytår (2.5)</th>
+    <th>Samfund (2.5)</th>
+    <th>Verden (2.5)</th>
+    <th>Nytårsønsker (2.5)</th>
+    <th>Varmeste (1.5)</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td>Over</td>
+    <td>1.95</td>
+    <td>1.8</td>
+    <td>1.7</td>
+    <td>1.62</td>
+    <td>2.2</td>
+    <td>1.95</td>
+    <td>1.85</td>
+    <td>1.6</td>
+    <td>2.2</td>
+    <td>1.48</td>
+  </tr>
+  <tr>
+    <td>Under</td>
+    <td>1.75</td>
+    <td>1.9</td>
+    <td>2.02</td>
+    <td>2.15</td>
+    <td>1.6</td>
+    <td>1.75</td>
+    <td>1.85</td>
+    <td>2.2</td>
+    <td>1.6</td>
+    <td>2.45</td>
+  </tr>
+</tbody>
+</table>
+</div>
+
+<img src={'/blog/over-under-props.png'} alt="Assigned over/under probabilities based on our Poission model" />
+
+We can convert these to odds by the formula: 
+
+$\mbox{odds} = \frac{1}{\mbox{probability}}$
+
+For example, the "over" bet on "Danmark" is assigned a probability of approximately 4% which corresponds to an odds of 25. 
+
+Because it seems that betting "under" for everything is such a good strategy,
+let us just skip directly to the imporant question: "How much should I bet?"! This is a question usually answered by the Kelly criterion. This is a beautiful piece of math the gives the ratio
+of your bankroll that you should gamble with. For a probability of winning p with a payout of odds b it states that:
+
+$$
+	f = p - \frac{1 - p}{b - 1}
+$$
+
+In a fair coin flip situation, you get odds of 2 and a probability to win of 0.5, resulting in a Kelly ratio of 0. 
+That matches the intuition that you should probably not partake in such bets as they do not have a positive expected value!
+In a famous experiment, researchers gave participants $25 and asked them to bet on a 60/40 biased coin, where the odds payout was 2. In this experiment, each of the participants should have used:
+
+$$
+	f = 0.6 - \frac{1 - 0.6}{2 - 1} = 0.2
+$$
+
+of their bankroll. In the experiment, 28% of people went broke even in this very advantageous betting scenario, highlighting the need for proper bankroll management!
+
+Calculating the Kelly criterion for our "under" bets, we find that:
+
+<div style={{ overflowX: 'auto', }}>
+<table>
+<thead>
+  <tr>
+    <th></th>
+    <th>Danmark (under)</th>
+    <th>Danske (under)</th>
+    <th>Tak (under)</th>
+    <th>Grønland (under)</th>
+    <th>Færøerne (under)</th>
+    <th>Nytår (under)</th>
+    <th>Samfund (under)</th>
+    <th>Verden (under)</th>
+    <th>Nytårsønsker (under)</th>
+    <th>Varmeste (under)</th>
+  </tr>
+</thead>
+<tbody style={{ textAlign: 'center'}}>
+  <tr>
+    <td>Over</td>
+    <td>0.91</td>
+    <td>0.54</td>
+    <td>0.44</td>
+    <td>0.71</td>
+    <td>0.79</td>
+    <td>0.46</td>
+    <td>0.61</td>
+    <td>0.61</td>
+    <td>0.92</td>
+    <td>0.66</td>
+  </tr>
+</tbody>
+</table>
+</div>
+
+According to the model, all the bets have a *very* positive expected value. To determine the actual bets sizes, I took my 1000 DKK bankroll and divided it between the normalized
+Kelly ratios. The resulting bets were then:
+
+<div style={{ overflowX: 'auto', }}>
+<table>
+<thead>
+  <tr>
+    <th></th>
+    <th>Danmark (under)</th>
+    <th>Danske (under)</th>
+    <th>Tak (under)</th>
+    <th>Grønland (under)</th>
+    <th>Færøerne (under)</th>
+    <th>Nytår (under)</th>
+    <th>Samfund (under)</th>
+    <th>Verden (under)</th>
+    <th>Nytårsønsker (under)</th>
+    <th>Varmeste (under)</th>
+  </tr>
+</thead>
+<tbody style={{ textAlign: 'center'}}>
+  <tr>
+    <td>Bets (DKK)</td>
+    <td>137</td>
+    <td>81</td>
+    <td>65</td>
+    <td>106</td>
+    <td>120</td>
+    <td>69</td>
+    <td>91</td>
+    <td>91</td>
+    <td>139</td>
+    <td>100</td>
+  </tr>
+  <tr>
+    <td>Result (DKK)</td>
+    <td>239.75</td>
+    <td>0</td>
+    <td>0</td>
+    <td>227.90</td>
+    <td>192</td>
+    <td>0</td>
+    <td>168.35</td>
+    <td>0</td>
+    <td>222.40</td>
+    <td>0</td>
+  </tr>
+</tbody>
+</table>
+</div>
+
+For a cool cashout of 50 DKK! Interrestingly the four bets we won where the bets with the highest Kelly ratio. 
