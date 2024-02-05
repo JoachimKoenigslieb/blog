@@ -31,9 +31,9 @@ export default function RootLayout({
 						{post.title}
 					</ActiveLink>						
 				))}
-				<span className="md:mt-auto ml-auto md:ml-0 flex:md flex-col gap-2 hidden">
+				<span className="md:mt-auto ml-auto md:ml-0 md:flex flex-col gap-2 hidden">
 					<a href="https://github.com/JoachimKoenigslieb">Github link</a>
-					<span>
+					<span className="text-sm">
 						joachim.koenigslieb@gmail.com	
 					</span>
 				</span>
