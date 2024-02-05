@@ -23,15 +23,15 @@ export default function RootLayout({
   return (
     <html lang="en">
 		<body className={`${inter.className} bg-slate-100 flex flex-col md:flex-row`}>
-			<nav className="flex flex-row items-baseline jusit md:flex-col gap-4 bg-slate-300 md:basis-2/12 basis-0 md:py-12 px-4 h-screen md:sticky top-0">
+			<nav className="flex flex-row items-baseline md:flex-col gap-4 bg-slate-300 md:basis-2/12 md:py-12 px-4 md:h-screen md:sticky md:top-0 overflow-auto">
 				<h1>Blog</h1>
 				<ActiveLink href={'/'}>Home</ActiveLink>
 				{posts.map(post => (
 					<ActiveLink href={post.path} key={post.path}>
 						{post.title}
-					</ActiveLink>
+					</ActiveLink>						
 				))}
-				<span className="md:mt-auto ml-auto md:ml-0 flex flex-col gap-2">
+				<span className="md:mt-auto ml-auto md:ml-0 flex:md flex-col gap-2 hidden">
 					<a href="https://github.com/JoachimKoenigslieb">Github link</a>
 					<span>
 						joachim.koenigslieb@gmail.com	

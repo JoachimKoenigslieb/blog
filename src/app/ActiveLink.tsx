@@ -8,7 +8,7 @@ export const ActiveLink: typeof Link = ({ href, children, }) => {
 	const isActive = href === segment
   
 	return (
-		<Link href={href} className={isActive ? "font-bold" : undefined}>
+		<Link href={href} className={`${isActive ? "font-bold" : undefined} shrink-0`}>
 			{children}
 		</Link>
 	)
