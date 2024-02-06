@@ -1,0 +1,55 @@
+## 4 billion if statements.
+
+You [might have read the blog](https://andreasjhkarlsson.github.io//jekyll/update/2023/12/27/4-billion-if-statements.html) exploring the funny TikTok video of writing an `isEven` function using explicit comparisons. 
+It was found that you can actually run these 4 billion if statements in approximately 10 seconds! Pretty wild. It does
+seem like the programmed is bottlenecked by actually loading all the billions of instructions into memory, which is tough. I 
+I thought we could try to speed this up a bit. To keep it in the spirit of the original program, we will still use explicit
+checks for evenness. 
+
+### Writing the program
+
+I actually wanted to have a baseline comparison of a huge program with all the explicit comparisons written out, like in the
+original blog post. But my computer is an M2 chip, and the arm-64 instruction set is a lot more iffy to write out, so I 
+I did not have any luck writing a comparable Python compiler. Instead, we will have our baseline as "just a loop.".
+But to actually have the eveness be checked explicitly, we will check against *all* the even numbers, and then against *all* 
+the odd numbers. The C code will look something like this:
+
+```
+    int isOdd = 0;
+    int isEven = 0;
+
+    for (u_int32_t i = 1; i<UINT32_MAX; i=i+2) {
+        // checking all the odd numbers...
+        if (i == test_case) {
+            isOdd += 1;
+        }
+    }
+
+    // the max value we can have in whatever bit-width is 2**n - 1, this means we WILL skip over this
+    for (u_int32_t i = 0; i<(UINT32_MAX-1); i=i+2) {
+        if (i == test_case) {
+            // checking all the even numbers...
+            isEven += 1;
+        }
+    }
+```
+
+This actually has big potential for a very annoying and subtle bug: In the even case it is very easy to "overshoot" and
+cause an integer overflow! 
+
+Running this program takes about 7 seconds on my machine. It is going to be pretty hard to directly compare the setup in the blog
+but if someone is interested in writing out a program that can run on an M2 chip that explicitly checks in the spirit of the
+original post by `andreasjhkarlsson`, you can submit a [PR here](https://github.com/JoachimKoenigslieb/fast-if-else), and I will add it to the benchmarks!
+
+## Improving performance
+
+This program is extremely "embarrassingly parellelizable.". All the checks are independent! Because I could not get OpenMP
+to compile in a reasonable amount of time for a project like this, I decided to just raw-dog a threaded version myself. 
+Here I show results running on 8 threads (as that is the amount of physical high-performance cores on this chip). This 
+gives a speed-up of about 5-6 times compared to the naive version (or, about an infinite slowdown compared to checking the LSB...)!
+
+<img src={'/blog/fast-if-else-perf.png'} alt="log-log plot of performance. The threaded version is 6 times faster." />
+
+But looking at that Apple promo material, it seems we might be able to do better. We have both a GPU and a (quite mysterious) TPU on
+SOC. Writing code targeting GPUs is never trivial, but it seems like we could be following along with [this great blog post about compiling C++ code
+to Metal shaders](https://larsgeb.github.io/2022/04/20/m1-gpu.html). That's a project for another time...
