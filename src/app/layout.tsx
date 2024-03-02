@@ -26,7 +26,8 @@ export default function RootLayout({
 			<nav className="flex flex-row items-baseline md:flex-col gap-4 bg-slate-300 md:basis-2/12 md:py-12 px-4 md:h-screen md:sticky md:top-0 overflow-auto">
 				<h1>Blog</h1>
 				<ActiveLink href={'/'}>Home</ActiveLink>
-				{posts.map(post => (
+				<div className="h-0 border-[1px] w-full"/>
+				{posts.reverse().map(post => (
 					<ActiveLink href={post.path} key={post.path}>
 						{post.title}
 					</ActiveLink>						

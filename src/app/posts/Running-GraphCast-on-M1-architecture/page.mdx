@@ -1,0 +1,53 @@
+## What is GraphCast
+
+GraphCast is a machine learning weather prediction model by Deepmind. This model directly learns the physics of weather prediction, 
+which on the surface seems quite outragoues! But actually the way you one modern NWP predictions also includes a lot of "learned"
+physics, just in the form of carefuly selected integration schemes, numerical stability fixes, dropped terms in physical equations and so
+much more. Instead of fuzzing about trying to setup the system carefuly, we metaphorically "skip" that part and instead learn it directly.
+
+Even more impressive is the result. The actual comparisons get a bit iffy as you get into the nitty-gritty details of different ECMWF
+outputs, but the underlying point is that this is a *very* impressive result. GraphCast runs on a single TPU instance in one minute and 
+produces operational weather forecasts which can compute with the HRES model taking an hour to run on super-computer scale hardware. 
+
+## Can you run this on a laptop then?
+
+Well, turns out you probably can. To get a sense of the memory requirements we need to take a look at a rough arcitechture outline of GraphCast.
+
+How it work is basicly that you have the input state of the atmosphere. Then you feed that into an encoder network which encodes the information
+unto a latent graph. Each node in this latent graph space is connected to other nodes in varying length scales which allows the nodes to
+"feel" its physical soroudings. 
+
+So to run the model you need: 1) An input state of the atmosphere. and 2) the parameters of the GNN. The number of parameters needed is actually
+"only" 36.7 million. That is about 300 megabytes worth of parameters. Tiny compared to the giant language models popular today which containers 10-100s of billion paramaters!
+We also need to store the input. This turns out to be much, much bigger than the paramaters of the model! The baseline GraphCast model operates on a 
+0.25 degree grid (which is small, but not best-in-class compared to ECMWFs best models at 0.1 degrees!), and has 5 surface and 6 atmospheric variables in 37 layers. 
+This means we have a total of 721 * 1440 = 1.038.240 grid points each holding 5 + 37 * 6 values. This gives a total input weight of 
+
+$$
+	1038240 * (5 + 37 * 6) = 1.9 \, \mbox{gigabytes}
+$$
+
+It also turns out that you need the current *and* the previous state to compute the next atmospheric state, so you can multiply this by two!
+
+Altogether we need best-case of 4GB of memory to hold this. In reality there are probably a lot of intermediate results that can not be thrown away
+in the computation, so it might worse than this. So if you want to run this yourself, you probably need something like a Nvidia 4000 series card, if you
+dont want to wait for you CPU to do the computations super slowly. Or, you can try running it on your M1 unified memory!
+
+## Running this on an M1
+
+JAX, which GraphCast is based on, actually has experimental support for the Metal backend. Pretty nice! To make this run, I encountered two issues.
+First, the default installation of `dm-tree` did not compile properly from the install script. Compiling from sources seems to work fine tough, and 
+actually if you install with `pip` from a requriements file it also works. Python envs are pretty cursed. 
+
+Then we can just replace the `jax` part of the `setup.py` script with `metal-jax` and everything "just works". I've [forked](https://github.com/JoachimKoenigslieb/graphcast) 
+the project and added an installation script that should setup GraphCast on an modern MacBook using the available accelerator hardware. 
+
+Running the small model (1 degree resolution) works fine and takes approximately ten seconds pr. timestep of six hours. Compared to the
+CPU version, we get a pretty significant speedup: 
+
+<img src={'/blog/metal_speed.png'} alt="Plot showing approx. 4 times speedup by using Metal accelerator" />
+
+Running the larger model, we start running into some problems. We get a Metal error saying we have allocated a Numpy array larger than 2^32 bytes, which seems a little annyoing
+considering the selling point of these MacBook is that they have huge integrated memory. I mean, what good is integrated memory if I cant assign huge numpy arrays to it?
+
+I will try to debug this issue and see if I can fix it!
