@@ -1,0 +1,18 @@
+import {GribMap} from '@/components/GribMap'
+
+## Grib files in the browser???
+It turns out that [the idea discussed briefly]() on the ECMWF Code for Earth challenge page is actually sort of possible
+
+Hooking together a stack of
+- https://github.com/BlueNetCat/grib22json
+- and Deck.gl with mapbox libre
+
+We get something that just sort-of works out of the box:
+
+<GribMap />
+
+There is obviously some sort of defect in the latitude, where is seems everything is shifted somehow. 
+
+Potentially this GRIB file I found somewhere randomly has some quality issues. Or maybe there is a more serious project issue.
+The https://github.com/BlueNetCat/grib22json parser is... A bit rough (And my half-assed attempt at turning it into Typescript did **not** help!). Something could definitely go wrong there. It could be very interresting
+to see how far you can push this. Could this actually be a viable alternative to Panoply?
