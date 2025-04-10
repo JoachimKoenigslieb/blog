@@ -1,6 +1,7 @@
 // Author: Gerard Llorach
 // License: MIT
 // https://github.com/BlueNetCat/grib22json
+// @ts-nocheck
 
 import { GRIB2 } from "./grib2";
 
